@@ -1,12 +1,16 @@
 const express = require('express');
+const joi = require('@hapi/joi')
 const MoviesService = require('../services/movies');
 const {
   movieIdSchema,
-  createMoviesSchema,
+  createMovieSchema,
   updateMovieSchema
 }= require('../utils/schemas/movies')
 
 const validationHandler =require('../utils/middleware/validationHandler')
+const chacheResponse = require('../utils/cacheResponse')
+const { FIVE_MINUTES_IN_SECONDS,
+  SIXTY_MINUTES_IN_SECONDS } = require('../utils/time')
 
 function moviesApi(app) {
   const router = express.Router();
@@ -15,6 +19,7 @@ function moviesApi(app) {
   const moviesService = new MoviesService();
 
   router.get('/', async function(req, res, next) {
+    chacheResponse(res,FIVE_MINUTES_IN_SECONDS)
     const { tags } = req.query;
 
     try {
@@ -29,22 +34,28 @@ function moviesApi(app) {
     }
   });
 
-  router.get('/:movieId',validationHandler({movieId:movieIdSchema},'params'), async function(req, res, next) {
-    const { movieId } = req.params;
+  
 
-    try {
-      const movies = await moviesService.getMovie({ movieId });
-
-      res.status(200).json({
-        data: movies,
-        message: 'movie retrieved'
-      });
-    } catch (err) {
-      next(err);
+  router.get(
+    '/:movieId',
+    validationHandler(joi.object({ movieId: movieIdSchema }), 'params'),
+    async function(req, res, next) {
+      chacheResponse(res,SIXTY_MINUTES_IN_SECONDS)
+        const { movieId } = req.params
+        try {
+            const movie = await moviesService.getMovie({ movieId })
+            res.status(200).json({
+                data: movie,
+                message: 'movie by id'
+            })
+        } catch (error) {
+            next(error)
+        }
     }
-  });
+)
 
-  router.post('/',validationHandler(createMoviesSchema), async function(req, res, next) {
+
+  router.post('/',validationHandler(createMovieSchema), async function(req, res, next) {
     const { body: movie } = req;
     try {
       const createdMovieId = await moviesService.createMovie({ movie });

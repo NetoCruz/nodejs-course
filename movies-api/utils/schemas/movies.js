@@ -16,16 +16,17 @@ const movieContentRatingSchema = joi.string().max(5);
 const movieSourceSchema = joi.string().uri();
 const movieTagsSchema = joi.array().items(joi.string().max(50));
 
-const createMovieSchema = {
-  title: movieTitleSchema.required(),
-  year: movieYearSchema.required(),
-  cover: movieCoverSchema.required(),
-  description: movieDescriptionSchema.required(),
-  duration: movieDurationSchema.required(),
-  contentRating: movieContentRatingSchema.required(),
-  source: movieSourceSchema.required(),
-  tags: movieTagsSchema
-};
+
+const createMovieSchema = joi.object({
+    title: movieTitleSchema.required(),
+    year: movieYearSchema.required(),
+    cover: movieCoverSchema.required(),
+    description: movieDescriptionSchema.required(),
+    duration: movieDurationSchema.required(),
+    contentRating: movieContentRatingSchema.required(),
+    source: movieSourceSchema.required(),
+    tags: movieTagsSchema
+})
 
 const updateMovieSchema = {
   title: movieTitleSchema,
